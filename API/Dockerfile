@@ -17,7 +17,7 @@ RUN wget https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSIO
     && rm chrome-linux64.zip
 
 # Install Chromedriver
-RUN wget https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVER_VERSION/mac-arm64/chromedriver-mac-arm64.zip \
+RUN wget https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVER_VERSION/linux64/chromedriver-linux64.zip \
     && unzip chromedriver-linux64.zip \
     && mv chromedriver-linux64/chromedriver /usr/bin/chromedriver \
     && chmod +x /usr/bin/chromedriver \
