@@ -29,7 +29,8 @@ def scrape():
         return jsonify({'error': 'Invalid LinkedIn URL'}), 400
 
     opts = Options()
-    service = Service(ChromeDriverManager().install())
+    # service = Service(ChromeDriverManager().install())
+    service = Service('/usr/local/bin/chromedriver')
     opts.add_argument('--headless') 
     opts.add_argument("--no-sandbox")
     opts.add_argument("--disable-dev-shm-usage")
