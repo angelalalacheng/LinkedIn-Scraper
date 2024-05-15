@@ -33,7 +33,7 @@ python3 app.py
 
 ## How it works
 
-![]("https://github.com/angelalalacheng/LinkedIn-Scraper/blob/main/flow.png")
+![](https://github.com/angelalalacheng/LinkedIn-Scraper/blob/main/flow.png)
 
 ## Challenge
 
