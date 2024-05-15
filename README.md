@@ -33,7 +33,10 @@ python3 app.py
 
 ## How it works
 
+![]("https://github.com/angelalalacheng/LinkedIn-Scraper/blob/main/flow.png")
+
 ## Challenge
 
-1. I'm facing difficulties with my LinkedIn crawler which can only operate in headful mode, making deployment more challenging because it requires a GUI.
+1. Deploy the API as Web Service with some difficulties.
 2. I tried deploying it using Docker on Render, Replit, and EC2, but none of these attempts were successful.
+3. Many questions about installing Chrome and Driver on server.
