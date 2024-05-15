@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 def login(driver, email, password):
     driver.get("https://www.linkedin.com")
+    sleep(10)
     user = driver.find_element(By.ID, "session_key")
     user.send_keys(email)
     sleep(0.5)
@@ -26,7 +27,6 @@ def login(driver, email, password):
         return False
     except Exception:
         print("Login Successful!")
-        sleep(2)
     
     return True
 
@@ -51,7 +51,7 @@ def get_post_comments(driver, url):
         while True:
             load_more_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "comments-comments-list__load-more-comments-button")))
             load_more_button.click()
-            sleep(3)
+            sleep(1)
     except Exception:
         print("# All comments have been loaded")
     finally:

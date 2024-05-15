@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import scraper
@@ -29,6 +30,11 @@ def scrape():
 
     opts = Options()
     service = Service(ChromeDriverManager().install())
+    opts.add_argument('--headless') 
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--disable-gpu")
+
     driver = webdriver.Chrome(options=opts, service=service)
 
     if not scraper.login(driver, email, password):
@@ -45,4 +51,4 @@ def scrape():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=8080)

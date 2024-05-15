@@ -4,7 +4,7 @@ import { saveAs } from "file-saver";
 import * as Papa from "papaparse";
 
 function scraperAPI(email, password, url, setData) {
-  fetch("https://linkedin-scraper-mrr8.onrender.com/scrape", {
+  fetch("http://127.0.0.1:8080/scrape", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
