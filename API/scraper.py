@@ -40,57 +40,81 @@ def is_url_valid(url):
     if not re.match(r"https://www.linkedin.com/posts/.+", url):
         return False
     return True
-    
+
 def get_post_comments(driver, url):
     if not is_url_accessible(url):
         return {}, False
+    
+    driver.get(url)
+    click_load_more_buttons(driver)
+    click_show_prev_replies_buttons(driver)
 
+    data = []
+    comments = driver.find_elements(By.CLASS_NAME, "comments-comments-list__comment-item")
+    for comment in comments:
+        info = extract_comment_info(comment)
+        data.append(info)
+
+        replies_list = comment.find_elements(By.CLASS_NAME, "comments-comment-item__replies-list")
+        for replies in replies_list:
+            scrape_replies(driver, replies, data)
+
+    return json.dumps(data), True
+
+def extract_comment_info(comment):
+    info = {}
+    commenter = comment.find_element(By.CLASS_NAME, "comments-post-meta__profile-info-wrapper")
+    commenterName = get_commenter_name(commenter)
+    commenterLink = commenter.find_element(By.TAG_NAME, "a").get_attribute("href")
+    commenterHeadline = commenter.find_element(By.CLASS_NAME, "comments-post-meta__headline").text
+    commentContent = comment.find_element(By.CLASS_NAME, "comments-comment-item__main-content").text
+    
+    info['Name'] = commenterName
+    info['Profile Link'] = commenterLink
+    info['Current Position'] = extract_position(commenterHeadline)
+    info['Comment'] = commentContent
+    return info
+
+def scrape_replies(driver, reply_element, data):
+    replies = reply_element.find_elements(By.CLASS_NAME, "comments-reply-item")
+    for reply_comment in replies:
+        reply_info = extract_comment_info(reply_comment)
+        data.append(reply_info)
+        # recursively scrape replies to replies
+        scrape_replies(driver, reply_comment, data)
+
+def get_commenter_name(commenter):
     try:
-        driver.get(url)
-        wait = WebDriverWait(driver, 5)
-        while True:
-            load_more_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "comments-comments-list__load-more-comments-button")))
-            load_more_button.click()
-            sleep(1)
-    except Exception:
-        print("# All comments have been loaded")
-    finally:
-        data = []
-        comments = driver.find_elements(By.CLASS_NAME, "comments-comments-list__comment-item")
-        for comment in comments:
-            info = {}
-            commenter = comment.find_element(By.CLASS_NAME, "comments-post-meta__profile-info-wrapper")
-            commenterName = commenter.find_element(By.CLASS_NAME, "comments-post-meta__name-text").find_element(By.CSS_SELECTOR, "span[aria-hidden='true']").text
-            commenterLink = commenter.find_element(By.TAG_NAME, "a").get_attribute("href")
-            commenterHeadline = commenter.find_element(By.CLASS_NAME, "comments-post-meta__headline").text
-            commentContent = comment.find_element(By.CLASS_NAME, "comments-comment-item__main-content").text
-            info['Name'] = commenterName
-            info['Profile Link'] = commenterLink
-            info['Current Position'] = extract_position(commenterHeadline)
-            info['Comment'] = commentContent
-            data.append(info)
-        json_data = json.dumps(data)
-        return json_data, True
+        return commenter.find_element(By.CLASS_NAME, "comments-post-meta__name-text").find_element(By.CSS_SELECTOR, "span[aria-hidden='true']").text
+    except:
+        return commenter.find_element(By.CLASS_NAME, "comments-post-meta__name-text").text 
 
 def extract_position(commenterHeadline):
-    if commenterHeadline=="":
+    if not commenterHeadline:
         return "Not Available"
-    
-    if commenterHeadline.find("|") == -1:
-        return commenterHeadline
-    else:
-        return commenterHeadline[:commenterHeadline.find("|")].strip()
+    return commenterHeadline.split("|")[0].strip() if "|" in commenterHeadline else commenterHeadline
 
-# download or update ChromeDriver
-# opts = Options()
-# opts.add_argument("--headless")
-# opts.add_argument("--disable-gpu")
-# service = Service(ChromeDriverManager().install())
-# driver = webdriver.Chrome(options=opts, service=service)
+def click_load_more_buttons(driver):
+    while True:
+        try:
+            button = WebDriverWait(driver, 1).until(
+                EC.element_to_be_clickable((By.CLASS_NAME, "comments-comments-list__load-more-comments-button"))
+            )
+            driver.execute_script("arguments[0].scrollIntoView(true);", button)
+            driver.execute_script("arguments[0].click();", button)
+            sleep(1)  # wait for more comments to load
+        except:
+            break
 
-# is_url_valid(url)
-# login(driver, email, password)
-# get_post_comments(driver, url)
-
-# close the browser
-# driver.quit()
+def click_show_prev_replies_buttons(driver):
+    try:
+        buttons = driver.find_elements(By.CSS_SELECTOR, "button.show-prev-replies")
+        for button in buttons:
+            try:
+                driver.execute_script("arguments[0].scrollIntoView(true);", button)
+                driver.execute_script("arguments[0].click();", button)
+                sleep(0.5)
+            except:
+                print("Could not click 'show-prev-replies' button")
+    except:
+        print("No 'show-prev-replies' buttons found")

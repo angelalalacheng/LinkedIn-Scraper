@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Button, Form, Input, Table } from "antd";
+import { Button, Form, Input, Table, Spin } from "antd";
 import { saveAs } from "file-saver";
 import * as Papa from "papaparse";
 
-function scraperAPI(email, password, url, setData) {
+function scraperAPI(email, password, url, setData, setLoading) {
+  setLoading(true);
   fetch("http://127.0.0.1:8080/scrape", {
     method: "POST",
     headers: {
@@ -11,19 +12,36 @@ function scraperAPI(email, password, url, setData) {
     },
     body: JSON.stringify({ email, password, url }),
   })
-    .then((res) => res.json())
+    .then((res) => {
+      // Check if the response is not successful
+      if (!res.ok) {
+        // Parse the response body as JSON to get the error message
+        return res.json().then((error) => {
+          throw new Error(error.error || `HTTP error! status: ${res.status}`);
+        });
+      }
+      return res.json();
+    })
     .then((data) => {
       setData(data);
+      setLoading(false);
+    })
+    .catch((error) => {
+      alert(error);
+      setLoading(false);
     });
 }
 
 function Homepage() {
+  // State for storing the scraped data
   const [data, setData] = useState(null);
+  // State for managing the spinner
+  const [loading, setLoading] = useState(false);
 
   const onFinish = (values) => {
     alert("Please wait for a few seconds to scrape the data!");
     const { username, password, url } = values;
-    scraperAPI(username, password, url, setData);
+    scraperAPI(username, password, url, setData, setLoading);
   };
 
   const onFinishFailed = (errorInfo) => {
@@ -136,15 +154,17 @@ function Homepage() {
           </Button>
         </Form.Item>
       </Form>
-      {data && (
-        <div>
-          <h3>Scraped Data:</h3>
-          <Table columns={columns} dataSource={data} rowKey="Name" />
-          <Button type="primary" onClick={downloadCSV}>
-            Download CSV
-          </Button>
-        </div>
-      )}
+      <Spin spinning={loading}>
+        {data && (
+          <div>
+            <h3>Scraped Data:</h3>
+            <Table columns={columns} dataSource={data} rowKey="Name" />
+            <Button type="primary" onClick={downloadCSV}>
+              Download CSV
+            </Button>
+          </div>
+        )}
+      </Spin>
     </>
   );
 }
