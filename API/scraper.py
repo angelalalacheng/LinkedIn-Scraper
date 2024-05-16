@@ -8,10 +8,10 @@ from selenium.webdriver.support import expected_conditions as EC
 
 def login(driver, email, password):
     driver.get("https://www.linkedin.com")
-    sleep(10)
+    sleep(10) # wait for page to load because using headless mode
     user = driver.find_element(By.ID, "session_key")
     user.send_keys(email)
-    sleep(0.5)
+    sleep(0.5) # mimic human behavior
     pw = driver.find_element(By.ID,'session_password')
     pw.send_keys(password)
     sleep(0.5)
@@ -22,7 +22,6 @@ def login(driver, email, password):
         error_message = WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.ID, "error-for-password"))
         )
-        # print("Login Failed! Cannot continue scraping.")
         driver.quit()
         return False
     except Exception:
@@ -37,6 +36,7 @@ def is_url_accessible(url):
     return True
 
 def is_url_valid(url):
+    # check if URL is a LinkedIn post URL
     if not re.match(r"https://www.linkedin.com/posts/.+", url):
         return False
     return True
@@ -46,7 +46,9 @@ def get_post_comments(driver, url):
         return {}, False
     
     driver.get(url)
+    # show all comments by clicking 'Load more' buttons
     click_load_more_buttons(driver)
+    # show all replies by clicking 'Show previous replies' buttons
     click_show_prev_replies_buttons(driver)
 
     data = []
@@ -84,6 +86,8 @@ def scrape_replies(driver, reply_element, data):
         scrape_replies(driver, reply_comment, data)
 
 def get_commenter_name(commenter):
+    # I found that if the commenter is company account, it doesn't have span[aria-hidden='true']
+    # otherwise, if the commenter is a person, it has span[aria-hidden='true']
     try:
         return commenter.find_element(By.CLASS_NAME, "comments-post-meta__name-text").find_element(By.CSS_SELECTOR, "span[aria-hidden='true']").text
     except:

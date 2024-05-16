@@ -49,11 +49,12 @@ function Homepage() {
   };
 
   const downloadCSV = () => {
-    const csv = Papa.unparse(data);
+    const csv = Papa.unparse(sortedData);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, "data.csv");
   };
 
+  // Columns for the table
   const columns = [
     {
       title: "Name",
@@ -81,6 +82,11 @@ function Homepage() {
       key: "Comment",
     },
   ];
+
+  // Sort the data by Name
+  const sortedData = data
+    ? [...data].sort((a, b) => a.Name.localeCompare(b.Name))
+    : [];
 
   return (
     <>
@@ -155,10 +161,10 @@ function Homepage() {
         </Form.Item>
       </Form>
       <Spin spinning={loading}>
-        {data && (
+        {sortedData.length > 0 && (
           <div>
             <h3>Scraped Data:</h3>
-            <Table columns={columns} dataSource={data} rowKey="Name" />
+            <Table columns={columns} dataSource={sortedData} rowKey="Name" />
             <Button type="primary" onClick={downloadCSV}>
               Download CSV
             </Button>
